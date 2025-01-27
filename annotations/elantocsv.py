@@ -15,6 +15,7 @@ for ts in root.findall('.//TIME_ORDER/TIME_SLOT'):
 pt_intervals = []
 ds_intervals = []
 fbuoy_intervals = []
+fls_intervals = []
 
 for tier in root.findall('.//TIER'):
     for ann in tier.findall('.//ANNOTATION/ALIGNABLE_ANNOTATION'):
@@ -39,6 +40,8 @@ for tier in root.findall('.//TIER'):
             ds_intervals.append((start, end))
         elif ann_value.startswith('FBUOY'):
             fbuoy_intervals.append((start, end))
+        else:  # Capture all other annotations as FLS
+            fls_intervals.append((start, end))
 
 # Determine max time
 max_time = max(time_slots.values()) if time_slots else 0
@@ -48,42 +51,53 @@ time_column = []
 pt_column = []
 ds_column = []
 fbuoy_column = []
+fls_column = []
 
 current_time = 0.0
 while current_time <= max_time:
     time_column.append(round(current_time, 2))
     
-    # Check PT intervals
+    # Check all intervals
     pt = 0
+    ds = 0
+    fbuoy = 0
+    fls = 0
+    
+    # Check PT intervals
     for start, end in pt_intervals:
         if start <= current_time < end:
             pt = 1
             break
     
     # Check DS intervals
-    ds = 0
     for start, end in ds_intervals:
         if start <= current_time < end:
             ds = 1
             break
     
     # Check FBUOY intervals
-    fbuoy = 0
     for start, end in fbuoy_intervals:
         if start <= current_time < end:
             fbuoy = 1
             break
     
+    # Check FLS intervals
+    for start, end in fls_intervals:
+        if start <= current_time < end:
+            fls = 1
+            break
+    
     pt_column.append(pt)
     ds_column.append(ds)
     fbuoy_column.append(fbuoy)
+    fls_column.append(fls)
     
     current_time += 0.04  # Increment by 40ms (25 FPS)
 
 # Output CSV
 with open('BF1n.csv', 'w') as f:
-    f.write("Time,PT,DS,FBUOY\n")
-    for t, pt, ds, fbuoy in zip(time_column, pt_column, ds_column, fbuoy_column):
-        f.write(f"{t:.2f},{pt},{ds},{fbuoy}\n")
+    f.write("Time,PT,DS,FBUOY,FLS\n")
+    for t, pt, ds, fbuoy, fls in zip(time_column, pt_column, ds_column, fbuoy_column, fls_column):
+        f.write(f"{t:.2f},{pt},{ds},{fbuoy},{fls}\n")
 
 print("CSV file created successfully from .eaf with PT, DS, and FBUOY annotations!")
