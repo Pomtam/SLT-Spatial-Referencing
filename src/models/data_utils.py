@@ -1199,7 +1199,11 @@ def weightVectorImbalancedDataOneHot(data):
     # [samples, classes]
     # returns vector and dictionary
     dataIntegers = np.argmax(data, axis=1)
-    class_weights = compute_class_weight('balanced', np.unique(dataIntegers), dataIntegers)
+    class_weights = compute_class_weight(
+        class_weight='balanced', 
+        classes=np.unique(dataIntegers), 
+        y=dataIntegers
+    )
     return class_weights, dict(enumerate(class_weights))
 
 def verifSets(idxTrain, idxValid, idxTest):
