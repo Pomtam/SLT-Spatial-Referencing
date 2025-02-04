@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 
 # Parse the XML
-tree = ET.parse('BF1n.eaf')
+tree = ET.parse('BF24n.eaf')
 root = tree.getroot()
 
 # Extract time slots
@@ -18,6 +18,12 @@ fbuoy_intervals = []
 fls_intervals = []
 
 for tier in root.findall('.//TIER'):
+    tier_id = tier.attrib.get('TIER_ID', '')
+    
+    # Only process the LH-IDgloss and RH-IDgloss tiers
+    if tier_id not in ['LH-IDgloss', 'RH-IDgloss']:
+        continue
+    
     for ann in tier.findall('.//ANNOTATION/ALIGNABLE_ANNOTATION'):
         ann_value_elem = ann.find('ANNOTATION_VALUE')
         if ann_value_elem is None:
@@ -95,7 +101,7 @@ while current_time <= max_time:
     current_time += 0.04  # Increment by 40ms (25 FPS)
 
 # Output CSV
-with open('BF1n.csv', 'w') as f:
+with open('BF24n.csv', 'w') as f:
     f.write("Time,PT,DS,FBUOY,FLS\n")
     for t, pt, ds, fbuoy, fls in zip(time_column, pt_column, ds_column, fbuoy_column, fls_column):
         f.write(f"{t:.2f},{pt},{ds},{fbuoy},{fls}\n")
